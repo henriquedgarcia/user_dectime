@@ -1,0 +1,300 @@
+{
+  "scale": "4320x2160",
+  "fps": 30,
+  "gop": 30,
+  "duration": 60,
+  "dists": [
+    "burr12",
+    "fatiguelife",
+    "gamma",
+    "invgauss",
+    "rayleigh",
+    "lognorm",
+    "genpareto",
+    "pareto",
+    "halfnorm",
+    "expon"
+  ],
+  "qp_list1": [
+    20,
+    27,
+    32,
+    45
+  ],
+  "qp_list": [
+    20,
+    28,
+    36,
+    44
+  ],
+  "scale_list": [
+    "6480x3240",
+    "4320x2160",
+    "2880x1440",
+    "2160x1080"
+  ],
+  "rate_list": [
+    24000000,
+    16000000,
+    8000000,
+    2000000
+  ],
+  "crf_list": [
+    16,
+    22,
+    28,
+    34,
+    40,
+    46
+  ],
+  "tile_list": [
+    "1x1",
+    "3x2",
+    "4x3",
+    "6x3",
+    "6x4",
+    "6x5",
+    "6x6",
+    "7x6"
+  ],
+  "tile_list_linear_six": [
+    "1x1",
+    "3x2",
+    "4x3",
+    "6x3",
+    "6x4",
+    "6x5",
+    "6x6",
+    "7x6",
+    "8x6",
+    "9x6"
+  ],
+  "tile_list_linear_eight": [
+    "1x1",
+    "4x2",
+    "4x4",
+    "6x4",
+    "8x4",
+    "8x5",
+    "8x6",
+    "8x7",
+    "8x8",
+    "8x9"
+  ],
+  "tile_list_6TimesQuadratic": [
+    "1x1",
+    "3x2",
+    "6x4",
+    "9x6",
+    "12x8"
+  ],
+  "tile_list_1TimesQuadratic": [
+    "1x1",
+    "2x2",
+    "3x3",
+    "4x4",
+    "5x5",
+    "6x6",
+    "7x7",
+    "8x8",
+    "9x9"
+  ],
+  "single_videos_list": {
+    "surf": {},
+    "om_nom": {},
+    "lions": {},
+    "rollercoaster": {},
+    "clans": {},
+    "super_mario": {},
+    "ski": {},
+    "elephants": {},
+    "pluto": {},
+    "ball": {},
+    "manhattan": {},
+    "venice": {}
+  },
+  "videos_list": {
+    "ball": {
+      "filename": "ball_4320x2160_30.mp4",
+      "time": "0:18",
+      "group": "0"
+    },
+    "clans": {
+      "filename": "clans_4320x2160_30.mp4",
+      "time": "0:00",
+      "group": "2"
+    },
+    "elephants": {
+      "filename": "elephants_4320x2160_30.mp4",
+      "time": "1:00",
+      "group": "1"
+    },
+    "lions": {
+      "filename": "lions_4320x2160_30.mp4",
+      "time": "0:07",
+      "group": "1"
+    },
+    "manhattan": {
+      "filename": "manhattan_4320x2160_30.mp4",
+      "time": "1:31",
+      "group": "3"
+    },
+    "om_nom": {
+      "filename": "om_nom_4320x2160_30.mp4",
+      "time": "0:10",
+      "group": "0"
+    },
+    "pluto": {
+      "filename": "pluto_4320x2160_30.mp4",
+      "time": "0:00",
+      "group": "0"
+    },
+    "rollercoaster": {
+      "filename": "rollercoaster_4320x2160_30.mp4",
+      "time": "1:30",
+      "group": "3"
+    },
+    "ski": {
+      "filename": "ski_4320x2160_30.mp4",
+      "time": "0:40",
+      "group": "2"
+    },
+    "super_mario": {
+      "filename": "super_mario_4320x2160_30.mp4",
+      "time": "0:05",
+      "group": "1"
+    },
+    "surf": {
+      "filename": "surf_4320x2160_30.mp4",
+      "time": "1:04",
+      "group": "2"
+    },
+    "venice": {
+      "filename": "venice_4320x2160_30.mp4",
+      "time": "0:05",
+      "group": "3"
+    }
+  },
+  "videos_list2": {
+    "angels_fall": {
+      "filename": "angels_fall_4320x2160_30.mp4",
+      "time": "0:25",
+      "group": "0"
+    },
+    "blue_angels": {
+      "filename": "blue_angels_4320x2160_30.mp4",
+      "time": "1:00",
+      "group": "3"
+    },
+    "cusco": {
+      "filename": "cusco_4320x2160_30.mp4",
+      "time": "0:22",
+      "group": "1"
+    },
+    "dance_company": {
+      "filename": "dance_company_4320x2160_30.mp4",
+      "time": "1:00",
+      "group": "1"
+    },
+    "dance_company2": {
+      "filename": "dance_company2_4320x2160_30.mp4",
+      "time": "0:05",
+      "group": "2"
+    },
+    "dolphins": {
+      "filename": "dolphins_4320x2160_30.mp4",
+      "time": "0:11",
+      "group": "0"
+    },
+    "elephants2": {
+      "filename": "elephants2_4320x2160_30.mp4",
+      "time": "0:20",
+      "group": "1"
+    },
+    "f1": {
+      "filename": "f1_4320x2160_30.mp4",
+      "time": "0:17",
+      "group": "3"
+    },
+    "future_music": {
+      "filename": "future_music_4320x2160_30.mp4",
+      "time": "0:55",
+      "group": "0"
+    },
+    "jaws": {
+      "filename": "jaws_4320x2160_30.mp4",
+      "time": "1:49",
+      "group": "0"
+    },
+    "lion_king": {
+      "filename": "Lion_king_4320x2160_30.mp4",
+      "time": "2:08",
+      "group": "0"
+    },
+    "maldives": {
+      "filename": "maldives_4320x2160_30.mp4",
+      "time": "0:07",
+      "group": "0"
+    },
+    "moscow_kremlin": {
+      "filename": "moscow_kremlin_4320x2160_30.mp4",
+      "time": "1:13",
+      "group": "3"
+    },
+    "motor_show": {
+      "filename": "motor_show_4320x2160_30.mp4",
+      "time": "0:16",
+      "group": "1"
+    },
+    "nasa_launch": {
+      "filename": "nasa_launch_4320x2160_30.mp4",
+      "time": "3:30",
+      "group": "3"
+    },
+    "pac_man": {
+      "filename": "pac_man_4320x2160_30.mp4",
+      "time": "0:20",
+      "group": "0"
+    },
+    "paris": {
+      "filename": "paris_4320x2160_30.mp4",
+      "time": "0:46",
+      "group": "0"
+    },
+    "rhinos": {
+      "filename": "rhinos_4320x2160_30.mp4",
+      "time": "0:07",
+      "group": "0"
+    },
+    "spacewalk": {
+      "filename": "spacewalk_4320x2160_30.mp4",
+      "time": "2:09",
+      "group": "2"
+    },
+    "tiger": {
+      "filename": "tiger_4320x2160_30.mp4",
+      "time": "0:33",
+      "group": "1"
+    },
+    "timelapse": {
+      "filename": "timelapse_4320x2160_30.mp4",
+      "time": "0:15",
+      "group": "3"
+    },
+    "underwater": {
+      "filename": "underwater_4320x2160_30.mp4",
+      "time": "1:10",
+      "group": "3"
+    },
+    "wingsuit": {
+      "filename": "wingsuit_4320x2160_30.mp4",
+      "time": "0:02",
+      "group": "3"
+    },
+    "witheshark": {
+      "filename": "witheshark_4320x2160_30.mp4",
+      "time": "0:18",
+      "group": "2"
+    }
+  }
+}
