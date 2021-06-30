@@ -1,37 +1,40 @@
 import itertools
 import multiprocessing as mp
 import os
-
+from typing import Dict, List, NamedTuple, Union, AnyStr
 import cv2
 import numpy as np
-
-import viewport.util as util
+import pandas as pd
+import assets.util as util
 
 
 class Config(util.ConfigBase):
+    project: str
+    data_path: str
+    projection: str
+    scale: str
+    pattern_list: List[str]
+    viewport: dict
+    unit: str
+    columns_name: Dict[str, Dict]
+
     def __init__(self, config_file):
         self.config_file = config_file
-        self.project = ''
-        self.projection = ''
-        self.p_res_x = 0
-        self.p_res_y = 0
-        self.fov_x = 0
-        self.fov_y = 0
-        self.unit = ''
-        self.yaw_column = ''
-        self.pitch_column = ''
-        self.roll_column = ''
-        self.fov = util.Dimension(0, 0)
-        self.proj_res = util.Dimension(0, 0)
-        self.pattern = util.Dimension(0, 0)
-
         self.configure(config_file)
+        self.project = f'results/{self.project}'
         os.makedirs(self.project, exist_ok=True)
 
         self.pattern = util.Dimension(*list(map(int, self.pattern.split('x'))))
         self.fov = util.Dimension(self.fov_x, self.fov_y)
         self.proj_res = util.Dimension(self.p_res_x, self.p_res_y)
 
+
+class TilesHandler:
+    def __init__(self):
+        pass
+
+    pattern: AnyStr
+    
 
 class Plane:
     normal: util.Point3d
@@ -57,9 +60,6 @@ class View:
         :param fov: Field-of-View in degree
         :return: None
         """
-        self.center = util.Point_hcs(0, 0, 0)
-        self.fov = fov
-
         fovx = np.deg2rad(fov.x)
         fovy = np.deg2rad(fov.y)
 
@@ -76,33 +76,39 @@ class View:
 
 
 class Viewport:
-    def __init__(self, fov: util.Dimension, proj_res: util.Dimension) -> None:
+    Scale = NamedTuple('Scale', [('x', int), ('y', int)])
+    Point_bcs = NamedTuple('Point_bcs', [('yaw', float), ('pitch', float),
+                                         ('roll', float)])
+
+    position: Point_bcs
+    projection: np.ndarray
+
+    def __init__(self, fov: str, scale: str) -> None:
         """
         Viewport Class used to extract view pixels in projections.
         :param fov:
-        :param proj_res:
+        :param scale:
         """
-        self.position = util.Point_bcs(0, 0, 0)
-        self.projection = np.array([])
         self.fov = fov
-        self.proj_res = proj_res
+        self.scale = self.Scale(*util.splitx(scale))
+
         self.view = View(fov)
         self.new_view = View()
-        self.pre_proj = np.zeros((self.proj_res.y, self.proj_res.x))
+        self.pre_proj = np.zeros((self.scale.y, self.scale.x))
 
-    def set_position(self, new_position: util.Point_bcs) -> View:
+    def set_position(self, position: Point_bcs) -> View:
         """
         Set a new position to viewport using aerospace's body coordinate system
         and make the projection. Return numpy.ndarray.
-        :param new_position:
+        :param position:
         :return:
         """
-        self.position = new_position
-        self.new_view = rotate(new_position, self.view)
+        self.position = position
+        self.new_view = rotate(self.view, position)
         return self.new_view
 
     def project(self) -> np.ndarray:
-        self.projection = project_viewport(self.new_view, self.proj_res)
+        self.projection = project_viewport(self.new_view, self.scale)
         return self.projection
 
     def show(self) -> None:
@@ -111,7 +117,7 @@ class Viewport:
         cv2.destroyAllWindows()
 
 
-def rotate(new_position: util.Point_bcs, view: View):
+def rotate(view: View, new_position: util.Point_bcs):
     """
     Rotate the normal planes of viewport using matrix of rotation and Tait–Bryan
     angles in Z-Y-X order. Refer to Wikipedia.
@@ -204,7 +210,7 @@ def task_make_projection(config, position, user, frame, video):
     print(notify)
 
     # working
-    viewport = Viewport(fov=config.fov, proj_res=config.proj_res)
+    viewport = Viewport(fov=config.fov, scale=config.proj_res)
     viewport.set_position(position)
     projection = viewport.project()
 
@@ -315,3 +321,44 @@ def get_border(x: int, y: int, width: int, high: int) -> list:
     border.extend(list(zip(x3 * high, y1)))
 
     return border
+
+
+def position2trajectory(positions: Union[pd.Series, List], rng=360, fps=30, threshold=0.75):
+    """
+    positions: Iterable of int or float. Values must be degree.
+    rng: Range of dimension. 360 for Yaw, 180 for pitch.
+    Return: trajectory and velocity
+    """
+    state = 0
+    old_position = 0
+    velocity = []
+    trajectory = []
+
+    for frame, position in enumerate(positions):
+        if frame != 0:
+            diff = position - old_position
+            if diff > rng * threshold: state -= 1
+            elif diff < -rng * threshold: state += 1
+
+        trajectory.append(position + rng * state)
+        old_position = position
+
+        if frame == 0:
+            velocity.append(0.)
+        else:
+            velocity.append((trajectory[-1] - trajectory[-2]) * fps)
+
+    return trajectory, velocity
+
+
+def averaging_filter(serie: list, padding_type='repeat values'):
+    if 'repeat values' in padding_type:
+        padded_serie = serie[0] + serie + serie[-1]
+    elif 'zeros' in padding_type:
+        padded_serie = [0] + serie + [0]
+    else:
+        raise ValueError(f'padding_type "{padding_type}" not supported.')
+
+    serie_filtered = [(padded_serie[idx - 1] + padded_serie[idx] + padded_serie[idx + 1]) / 3
+                      for idx in range(1, len(padded_serie) - 1)]
+    return serie_filtered

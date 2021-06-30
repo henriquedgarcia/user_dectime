@@ -1,10 +1,11 @@
+import json
 import math
 import multiprocessing as mp
-from configparser import ConfigParser
-from multiprocessing.managers import SyncManager
-from typing import NamedTuple
-import pandas as pd
+import subprocess
+from typing import Any, Dict, List, NamedTuple
+
 import numpy as np
+import pandas as pd
 
 Dimension = NamedTuple('Dimension',
                        [('x', int), ('y', int)])
@@ -25,7 +26,7 @@ Point_hcs = NamedTuple('Point_hcs',
 
 # Multiprocessing object
 ProcContext = NamedTuple('ProcContext',
-                         [('procs', list),
+                         [('procs', List),
                           ('task_queue', mp.Queue),
                           ('active_count', mp.Value),
                           ('abort', mp.Event)])
@@ -35,24 +36,20 @@ class ConfigBase:
     """
     Base class to create config object.
     """
+    config_file: str
 
-    def configure(self, config_file: str) -> None:
+    def configure(self, config: Dict[str, Any]) -> None:
         """
         This function convert itens under [main] sections of a config file
         created using ConfigParser in attributes of this class.
-        :param config_file: the config filename
+        :param config: the config filename
         :return: None
         """
-        c = ConfigParser()
-        c.read(config_file)
-        c = c['main']
-
-        for item in c:
+        for item in config:
             try:
-                value = int(c[item])
+                value = float(config[item])
             except ValueError:
-                value = c[item]
-
+                value = config[item]
             setattr(self, item, value)
 
 
@@ -196,3 +193,69 @@ class ProxyDataFrame:
              (DataFrame): Uma cópia do DataFrame membro
         """
         return self.data_frame.copy()
+
+
+class AutoDict(dict):
+    def __missing__(self, key):
+        self[key] = type(self)()
+        return self[key]
+
+
+def run_command(command: str, log_to_save: str, mode: str = 'w') -> str:
+    """
+    Run a shell command with subprocess module with realtime output.
+    :param command: A command string to run.
+    :param log_to_save: A path-like to save the process output.
+    :param mode: The write mode: 'w' or 'a'.
+    :return: stdout.
+    """
+    print(command)
+
+    with open(log_to_save, mode, encoding='utf-8') as f:
+        process = subprocess.run(command, shell=True, stdout=f,
+                                 stderr=subprocess.STDOUT, encoding='utf-8')
+    return process.stdout
+
+
+def save_json(data: dict, filename, compact=False):
+    if compact:
+        separators = (',', ':')
+        indent = None
+    else:
+        separators = None
+        indent = 2
+
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(data, f, separators=separators, indent=indent)
+
+
+def splitx(string: str) -> tuple:
+    return tuple(map(int, string.split('x')))
+
+
+def autocorrelation(array: list, positive_only=False):
+    autocorrelate = np.correlate(array, array, mode="full")
+    if positive_only:
+        autocorrelate = autocorrelate[autocorrelate.size // 2:]
+    return autocorrelate
+
+
+def position2trajectory(positions: list, angles='euler'):
+    state = 0
+    old = 0
+    derived = []
+    trajectory = []
+    for n, position in enumerate(positions):
+        if n == 0:
+            old = position
+            continue
+        diff = old - position
+        derived.append(diff)
+
+        if diff > 200: state += 1
+        elif diff < -200: state -= 1
+
+        new_position = position + 360*state
+        trajectory.append(new_position)
+        old = position
+    return trajectory

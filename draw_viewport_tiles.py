@@ -1,13 +1,12 @@
 import itertools
 import json
 import pandas as pd
-import viewport.viewport as vp
-
+from assets import viewport as vp
 
 if __name__ == '__main__':
     config_file = "config.ini"
     config = vp.Config(config_file)
-    benchmark_config = json.load(open('config.json', 'r'))
+    benchmark_config = json.load(open('config/config.json', 'r'))
     tile_list = benchmark_config['tile_list']
 
     for user in range(1, 51):

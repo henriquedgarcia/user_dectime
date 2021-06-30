@@ -1,0 +1,27 @@
+{
+  "project": "results/360dataset",
+  "data_path": "data/360dataset/orientation",
+  "projection": "erp",
+  "scale": "840x420",
+  "scale_help": "To perfect tiling proporcions, use resolutions multiples of tiling scheme. 804x420 is multiples of 2, 3, 4, 5, 6, 7 and 8",
+  "pattern_list": [
+    "1x1",
+    "3x2",
+    "4x3",
+    "6x3",
+    "6x4",
+    "6x5",
+    "6x6",
+    "7x6"
+  ],
+  "viewport": {
+    "fov": "120x90"
+  },
+  "unit_help": "'deg or 'rad' or 'quaternion'",
+  "unit": "deg",
+  "columns_name": {
+    "yaw_column": "cal.yaw",
+    "pitch_column": "cal.pitch",
+    "roll_column": "cal.roll"
+  }
+}
