@@ -1,20 +1,22 @@
 import json
+import configparser
 import math
 import multiprocessing as mp
 import subprocess
-from typing import Any, Dict, List, NamedTuple
+from os import PathLike
+from typing import Any, Dict, List, NamedTuple, Union
 
 import numpy as np
 import pandas as pd
 
-Dimension = NamedTuple('Dimension',
-                       [('x', int), ('y', int)])
+Dimension = NamedTuple('Scale',
+                       [('m', int), ('n', int)])
 
 Point3d = NamedTuple('Point3d',
-                     [('x', float), ('y', float), ('z', float)])
+                     [('m', float), ('n', float), ('z', float)])
 
 Point2d = NamedTuple('Point2d',
-                     [('x', float), ('y', float)])
+                     [('m', float), ('n', float)])
 
 # body coordinate system
 Point_bcs = NamedTuple('Point_bcs',
@@ -60,7 +62,7 @@ def hcs2cart(position: Point_hcs):
     :return: A Point3d in cartesian coordinates
     """
     az = position.azimuth/180 * math.pi
-    el = position.elevation/180 * math.pi
+    el = position.elevation/90 * math.pi
     r = position.r
 
     ca = math.cos(az)
@@ -79,7 +81,7 @@ def cart2hcs(position: Point3d) -> Point_hcs:
     :param position: The cartesian coordinates to convert.
     :return: a Point_hcs object with angles in degree
     """
-    # r = math.sqrt(position.x ** 2 + position.y ** 2 + position.z ** 2)
+    # r = math.sqrt(position.m ** 2 + position.n ** 2 + position.z ** 2)
     # p = Point_hcs(r,
     p = Point_hcs(1,
                   np.rad2deg(math.atan2(position.y, position.x)),
@@ -127,7 +129,7 @@ def unproject(point: Point2d, res: Dimension) -> Point3d:
     # Only ERP Projection
     point = hcs2cart(Point_hcs(1,
                                (point.x / res.x) * 360 - 180,
-                               (point.y / res.y) * 180 - 90))
+                               -(point.y / res.y) * 180 + 90))
     return point
 
 
@@ -217,7 +219,13 @@ def run_command(command: str, log_to_save: str, mode: str = 'w') -> str:
     return process.stdout
 
 
-def save_json(data: dict, filename, compact=False):
+def load_json(data: dict,
+              filename,
+              hook=AutoDict):
+
+def save_json(data: dict,
+              filename: Union[str, Path],
+              compact=True):
     if compact:
         separators = (',', ':')
         indent = None
@@ -226,11 +234,11 @@ def save_json(data: dict, filename, compact=False):
         indent = 2
 
     with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(data, f, separators=separators, indent=indent)
+        json.dump(data, f, separators=separators, indent=indent, hook)
 
 
 def splitx(string: str) -> tuple:
-    return tuple(map(int, string.split('x')))
+    return tuple(map(int, string.split('m')))
 
 
 def autocorrelation(array: list, positive_only=False):
@@ -239,23 +247,3 @@ def autocorrelation(array: list, positive_only=False):
         autocorrelate = autocorrelate[autocorrelate.size // 2:]
     return autocorrelate
 
-
-def position2trajectory(positions: list, angles='euler'):
-    state = 0
-    old = 0
-    derived = []
-    trajectory = []
-    for n, position in enumerate(positions):
-        if n == 0:
-            old = position
-            continue
-        diff = old - position
-        derived.append(diff)
-
-        if diff > 200: state += 1
-        elif diff < -200: state -= 1
-
-        new_position = position + 360*state
-        trajectory.append(new_position)
-        old = position
-    return trajectory

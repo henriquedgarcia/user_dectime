@@ -24,170 +24,71 @@ para cada usuário
     faça a soma da decodificação por chunk time (1s)
         abrir dados de decodificação
 """
-import itertools
-import json
-import os
-import time
 
-import numpy as np
-import pandas as pd
-
-import viewport.util as util
-import viewport.viewport as vp
+from assets import viewport as vp
+import matplotlib.pyplot as plt
+tile_list = ["1x1", "3x2", "4x3", "6x3", "6x4", "6x5", "6x6", "7x6"]
+video_list = ['clans']
 
 
 def main():
-    """
-    Videos must have less tan 99999 frames. (
-    :return:
-    """
-    config_file = "config.ini"
-    config = vp.Config(config_file)
-    benchmark_config = json.load(open('config.json', 'r'))
-    tile_list = benchmark_config['tile_list']
-    video_list = ['clans']
-    # mp_context = util.make_process(vp.worker, 1, config)
-
-    for user in range(1, 51):
-        # if user is 2: break
-        for video in video_list:
-            if video in 'clans':
-                video = 'ride'
-
-            csv = f'data/{video}_user{user:02}_orientation.csv'
-            head_positions = pd.read_csv(csv, index_col=0)
-
-            work_folder = f'{config.project}/viewport_tiles/'
-            os.makedirs(work_folder, exist_ok=True)
-
-            for tilling in tile_list:
-                # if tilling not in '1x1': break
-
-                m, n = list(map(int, tilling.split('x')))
-                results = dict(video=[],
-                               user=[],
-                               tilling=[],
-                               frame=[],
-                               viewport_tiles=[])
-
-                filename = f'{work_folder}/{video}_user{user}_{tilling}.csv'
-                if os.path.isfile(filename):
-                    print(f'viewport_tiles: '
-                          f'O arquivo "{video}_user{user}.csv" existe. '
-                          f'Pulando')
-                    continue
-
-                for frame, [_, row] in enumerate(head_positions.iterrows(), 1):
-                    # if frame is 5: break
-                    position = util.Point_bcs(float(row[config.yaw_column]),
-                                              float(row[config.pitch_column]),
-                                              float(row[config.roll_column]))
-
-                    if config.unit in 'rad':
-                        position.yaw = np.rad2deg(position.yaw)
-                        position.pitch = np.rad2deg(position.pitch)
-                        position.roll = np.rad2deg(position.roll)
-
-                    # task_make_projection
-                    # func = dict(func=vp.task_make_projection)
-                    # args = dict(func=vp.task_make_projection,
-                    #             position=position,
-                    #             user=user,
-                    #             frame=int(frame),
-                    #             video=video)
-                    # mp_context.task_queue.put((func, args))
-
-                    # task_viewport_alpha
-                    # func = dict(func=vp.task_viewport_alpha)
-                    # args = dict(user=user,
-                    #             frame=int(frame),
-                    #             video=video)
-                    # mp_context.task_queue.put((func, args))
-
-                    args = dict(position=position,
-                                user=user,
-                                frame=frame,
-                                video=video,
-                                tilling=util.Dimension(m, n),
-                                results=results)
-                    func = task_viewport_tiles
-                    # mp_context.task_queue.put((func, args))
-                    func(config, **args)
-
-                # while mp_context.task_queue.qsize() > 100:
-                #     time.sleep(1)
-
-                tiles_df = pd.DataFrame(results)
-                tiles_df.to_csv(filename, index=False)
-
-    # join_process(mp_context)
+    position = vp.Point_bcs(0, 0, 0)
+    tiling = vp.Tiling('8x6', '400x200', '120x90')
+    vptiles = tiling.get_vptiles(position)
     print('Fim')
+    print(f'{vptiles}')
 
 
-def join_process(mp_context):
-    must_stop = False
-    while not must_stop:
-        time.sleep(1)
-        status_list = list(map(lambda element: element.is_alive(),
-                               mp_context.procs))
-        alive_rate = status_list.count(True)
-        must_stop = (alive_rate is 0
-                     or mp_context.abort.is_set()
-                     or (mp_context.task_queue.empty()
-                         and mp_context.active_count.value is 0))
-    mp_context.abort.set()
-    list(map(lambda p: p.join(), mp_context.procs))
-
-
-def task_viewport_tiles(config, user, frame, video, position, tilling,
-                        results):
-    """
-    Make projection as alpha channel of video frame
-    :param config:
-    :param user:
-    :param frame:
-    :param video:
-    :param video:
-    :param position:
-    :param tilling:
-    :param results:
-    :return:
-    """
-    # p_name = mp.current_process().name
-
-    pattern = f'{tilling.x}x{tilling.y}'
-
-    notify = (f'main viewport_tiles:{video}, user_{user}, frame {frame}, '
-              f'pattern {pattern}')
-    print(notify)
-
-    # Get viewport
-    viewport = vp.Viewport(config.fov, config.proj_res)
-    view = viewport.set_position(position)
-
-    # Tiles dimension
-    tiles = []
-    tile_width = int(config.proj_res.x / tilling.x)
-    tile_high = int(config.proj_res.y / tilling.y)
-    tiles_iter = itertools.product(range(tilling.y), range(tilling.x))
-    for idx, [tile_h, tile_v] in enumerate(tiles_iter, 1):
-        border = vp.get_border(tile_v, tile_h, tile_width, tile_high)
-
-        for (x, y) in border:
-            point = util.unproject(util.Dimension(x, y), config.proj_res)
-            if vp.is_viewport(point, view):
-                tiles.append(idx)
-                break
-
-    results['video'].append(video)
-    results['user'].append(user)
-    results['tilling'].append(pattern)
-    results['frame'].append(frame)
-    results['viewport_tiles'].append(tiles)
-
-
-class Container:
-    pass
+# def task_viewport_tiles(config, user, frame, video, position, tilling,
+#                         results) -> pd.DataFrame:
+#     """
+#     Make projection as alpha channel of video frame
+#     :param config:
+#     :param user:
+#     :param frame:
+#     :param video:
+#     :param video:
+#     :param position:
+#     :param tilling:
+#     :param results:
+#     :return:
+#     """
+#     # p_name = mp.current_process().name
+#
+#     pattern = f'{tilling.m}x{tilling.n}'
+#
+#     notify = (f'main viewport_tiles:{video}, user_{user}, frame {frame}, '
+#               f'pattern {pattern}')
+#     print(notify)
+#
+#     # Get viewport
+#     viewport = vp.Viewport(config.viewport.fov, config.scale)
+#     view = viewport.set_position(position)
+#
+#     # Tiles dimension
+#     tiles = []
+#     tile_width = int(config.proj_res.m / tilling.m)
+#     tile_high = int(config.proj_res.n / tilling.n)
+#     tiles_iter = itertools.product(range(tilling.n), range(tilling.m))
+#     idx = 0
+#     for tile_y in range(tilling.n):
+#         for tile_x in range(tilling.m):
+#             idx += 1
+#
+#             border = vp.get_border(tile_x, tile_y)
+#
+#             for (x, y) in border:
+#                 point = util.unproject(util.Dimension(x, y), config.proj_res)
+#                 if vp.is_viewport(point, view):
+#                     tiles.append(idx)
+#                     break
+#
+#     results['video'].append(video)
+#     results['user'].append(user)
+#     results['tilling'].append(pattern)
+#     results['frame'].append(frame)
+#     results['viewport_tiles'].append(tiles)
+#     return results
 
 
 if __name__ == "__main__":
